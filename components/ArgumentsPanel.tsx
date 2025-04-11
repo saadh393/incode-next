@@ -1,8 +1,4 @@
-import type { Database, Lesson } from "@/lib/supabase/database.types";
-
-type Lesson = Database["public"]["Tables"]["lessons"]["Row"] & {
-  arguments: Database["public"]["Tables"]["arguments"]["Row"][];
-};
+import type { Lesson } from "@/lib/types";
 
 interface ArgumentsPanelProps {
   lessons: Lesson[];

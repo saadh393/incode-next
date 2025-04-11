@@ -1,16 +1,15 @@
+import { getGameData } from "@/app/actions/gameActions";
 import GameBoard from "@/components/GameBoard";
-import { createClient } from "@/lib/supabase/server";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
 export default async function GameBoardPage({ params: { gameId } }: { params: { gameId: string } }) {
-  const supabase = createClient();
+  const data = await getGameData(gameId);
 
-  const { data: game } = await supabase.from("games").select("*").eq("id", gameId).single();
-
-  if (!game) {
-    return <div>Game not found</div>;
+  if (!data.game) {
+    notFound();
   }
 
   return (
@@ -21,7 +20,7 @@ export default async function GameBoardPage({ params: { gameId } }: { params: { 
         </div>
       }
     >
-      <GameBoard gameId={gameId} />
+      <GameBoard initialGame={data.game} initialLessons={data.lessons} />
     </Suspense>
   );
 }

@@ -1,9 +1,5 @@
+import type { Lesson } from "@/lib/types";
 import { useEffect, useState } from "react";
-import type { Database } from "../src/lib/database.types";
-
-type Lesson = Database["public"]["Tables"]["lessons"]["Row"] & {
-  arguments: Database["public"]["Tables"]["arguments"]["Row"][];
-};
 
 interface TypingAreaProps {
   lessons: Lesson[];
@@ -12,6 +8,7 @@ interface TypingAreaProps {
   onArgumentComplete: (index: number) => void;
   onLessonComplete: (totalChars: number, correctChars: number) => void;
   onTypingStart: () => void;
+  onWrongKeyPress: () => void;
 }
 
 function TypingArea({
@@ -21,6 +18,7 @@ function TypingArea({
   onArgumentComplete,
   onLessonComplete,
   onTypingStart,
+  onWrongKeyPress,
 }: TypingAreaProps) {
   const currentLesson = lessons.find((lesson) => lesson.id === currentLessonId) || lessons[0];
   const [typedText, setTypedText] = useState("");
@@ -61,7 +59,14 @@ function TypingArea({
         setTypedText((prev) => prev.slice(0, -1));
       } else if (event.key.length === 1) {
         onTypingStart();
-        setTypedText((prev) => prev + event.key);
+        setTypedText((prev) => {
+          const newText = prev + event.key;
+          // Check if the newly typed character is incorrect
+          if (event.key !== currentCommand.command[prev.length]) {
+            onWrongKeyPress();
+          }
+          return newText;
+        });
       }
     };
 
@@ -75,13 +80,16 @@ function TypingArea({
     onLessonComplete,
     totalCharacters,
     correctCharacters,
+    onTypingStart,
+    onWrongKeyPress,
+    currentCommand.command,
   ]);
 
   useEffect(() => {
     if (typedText === currentCommand.command) {
       setShowTabBadge(true);
       setTotalCharacters((prev) => prev + currentCommand.command.length);
-      const correct = [...typedText].filter((char, i) => char === currentCommand.command[i]).length;
+      const correct = Array.from(typedText).filter((char, i) => char === currentCommand.command[i]).length;
       setCorrectCharacters((prev) => prev + correct);
     } else {
       setShowTabBadge(false);
